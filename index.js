@@ -106,7 +106,11 @@ client.connect(err => {
           as: "user_services"
         }
       },
-      { $match: { "user_services":  {$ne: []} }},
+      { $unwind: "$user_services" },
+      { $match: {'user_services.email': req.query.email} }
+      // { $project: { email: req.query.email } }
+      // { $unwind: "$user_services" },
+      // { $match: { email: req.query.email } },
       // {
       //   $match: { $user_services : [{ email: req.query.email }] }
       // }
@@ -114,8 +118,8 @@ client.connect(err => {
     ).toArray((err, documents) => {
           console.log(req.query.email)
           console.log(documents);
-          console.log(documents[0].user_services);
-          console.log(documents[0].user_services[0].status);
+          // console.log(documents[0].user_services);
+          // console.log(documents[0].user_services[0].status);
           res.send(documents);
       })
 
@@ -202,6 +206,19 @@ client.connect(err => {
       userRoleCollection.find( { "email": email } )
       .toArray((err, documents) => {
         res.send(documents);
+      })
+    })
+
+    app.post('/updateSatus', (req, res) => {
+      console.log(req.body)
+      const id = req.body.id;
+      const status = req.body.status;
+      key = {"_id" : ObjectId(id)};
+      value = {"_id" : ObjectId(id), "status":status}
+      clientCollection.find({"_id" : ObjectId(id)})
+      clientCollection.updateOne(key, { $set: value})
+      .then(result => {
+        res.send(result);
       })
     })
 
